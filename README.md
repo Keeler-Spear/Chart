@@ -1,2 +1,2 @@
 # Chart
-JFreeChart with simplified chart creation
+JFreeChart with a simplified chart creation process.
