@@ -33,7 +33,7 @@ public class PyGraph {
                 //Printing the contour
                 out.println("plt.contourf(X, Y, Z, levels=30, alpha=0.5, cmap='jet')");
                 //Marking the minimum value
-                out.println("plt.plot(" + bMin + ", " + wMin + ", marker='X', markersize=12, markeredgewidth=2, color='blue')");
+//                out.println("plt.plot(" + bMin + ", " + wMin + ", marker='X', markersize=12, markeredgewidth=2, color='blue')");
                 //Setting x and y limits
                 out.println("plt.xlim(" + xLim + ", " + xMax + ")");
                 out.println("plt.ylim(" + yLim + ", " + yMax + ")");
@@ -56,7 +56,7 @@ public class PyGraph {
 
     //ToDo: Throw in some exception checks
     //x and y should be 1xn matrices.
-    public static void contourWithTracking(Matrix x, Matrix y, Matrix z, Matrix xT, Matrix yT, Matrix min, String xLabel, String yLabel, String title) {
+    public static void contourTrack(Matrix x, Matrix y, Matrix z, Matrix xT, Matrix yT, Matrix min, String xLabel, String yLabel, String title) {
         try {
             // Create a temporary Python script
             File pythonScript = File.createTempFile("contour_plot", ".py");
