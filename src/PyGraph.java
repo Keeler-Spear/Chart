@@ -152,12 +152,13 @@ public class PyGraph {
                 out.println("xAp = np.array(" + xAp.npString() + ")");
                 out.println("yAp = np.array(" + yAp.npString() + ")");
                 //Printing the scatter plot
-                out.println("plt.scatter(x, y, color='blue', s=20, label='Data points')");
+                out.println("plt.scatter(x, y, color='blue', s=10, label='Data Points')");
                 out.println("plt.plot(xAp, yAp, color='red', label='Best Fit')");
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
                 out.println("plt.ylabel('" + yLabel + "')");
                 out.println("plt.title('" + title + "')");
+                out.println("plt.legend()");
                 out.println("plt.show()");
             }
 
