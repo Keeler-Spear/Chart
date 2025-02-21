@@ -1,2 +1,2 @@
 # Chart
-JFreeChart with a simplified chart creation process.
+JFreeChart and Python's Matplotlib with a simplified chart creation process.
