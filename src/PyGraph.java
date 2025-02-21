@@ -2,12 +2,11 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-
-//Base code is from DeepSeek converting my Quiz 1 into Java. I then generalized it.
 public class PyGraph {
 
     //ToDo: Throw in some exception checks
     //x and y should be 1xn matrices.
+    //Base code is from DeepSeek converting my Quiz 1 into Java. I then generalized it.
     public static void contour(Matrix x, Matrix y, Matrix z, Matrix min, String xLabel, String yLabel, String title) {
         try {
             // Create a temporary Python script
@@ -33,7 +32,7 @@ public class PyGraph {
                 //Printing the contour
                 out.println("plt.contourf(X, Y, Z, levels=30, alpha=0.5, cmap='jet')");
                 //Marking the minimum value
-//                out.println("plt.plot(" + bMin + ", " + wMin + ", marker='X', markersize=12, markeredgewidth=2, color='blue')");
+                out.println("plt.plot(" + bMin + ", " + wMin + ", marker='X', markersize=12, markeredgewidth=2, color='blue')");
                 //Setting x and y limits
                 out.println("plt.xlim(" + xLim + ", " + xMax + ")");
                 out.println("plt.ylim(" + yLim + ", " + yMax + ")");
@@ -98,6 +97,72 @@ public class PyGraph {
             // Run the Python script
             ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
             pb.inheritIO(); // Display Python output
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void scatter(Matrix x, Matrix y, String xLabel, String yLabel, String title) {
+        try {
+            // Create a temporary Python script
+            File pythonScript = File.createTempFile("scatter_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                out.println("x = np.array(" + x.npString() + ")");
+                out.println("y = np.array(" + y.npString() + ")");
+                //Printing the scatter plot
+                out.println("plt.scatter(x, y, color='blue', s=20, label='Data points')");
+                //Titling chart
+                out.println("plt.xlabel('" + xLabel + "')");
+                out.println("plt.ylabel('" + yLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Created on my own, using the others for reference
+    public static void scatterWFnc(Matrix x, Matrix y, Matrix xAp, Matrix yAp, String xLabel, String yLabel, String title) {
+        try {
+            // Create a temporary Python script
+            File pythonScript = File.createTempFile("scatter_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                out.println("x = np.array(" + x.npString() + ")");
+                out.println("y = np.array(" + y.npString() + ")");
+                out.println("xAp = np.array(" + xAp.npString() + ")");
+                out.println("yAp = np.array(" + yAp.npString() + ")");
+                //Printing the scatter plot
+                out.println("plt.scatter(x, y, color='blue', s=20, label='Data points')");
+                out.println("plt.plot(xAp, yAp, color='red', label='Best Fit')");
+                //Titling chart
+                out.println("plt.xlabel('" + xLabel + "')");
+                out.println("plt.ylabel('" + yLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
             Process p = pb.start();
             p.waitFor();
         } catch (IOException | InterruptedException e) {
