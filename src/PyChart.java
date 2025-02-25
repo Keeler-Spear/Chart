@@ -2,7 +2,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-public class PyGraph {
+public class PyChart {
 
     //ToDo: Throw in some exception checks
     //x and y should be 1xn matrices.
