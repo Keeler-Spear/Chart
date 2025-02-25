@@ -1,2 +1,6 @@
 # Chart
-JFreeChart and Python's Matplotlib with a simplified chart creation process.
+A class that can use Python's Matplotlib with Java and a simplified chart creation process.
+
+# Dependencies
+
+-My Mathematics library: https://github.com/Keeler-Spear/Mathematics
