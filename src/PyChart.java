@@ -114,11 +114,12 @@ public class PyChart {
                 out.println("x = np.array(" + x.npString() + ")");
                 out.println("y = np.array(" + y.npString() + ")");
                 //Printing the scatter plot
-                out.println("plt.scatter(x, y, color='blue', s=20, label='Data points')");
+                out.println("plt.scatter(x, y, color='blue', s=10, label='Data points')");
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
                 out.println("plt.ylabel('" + yLabel + "')");
                 out.println("plt.title('" + title + "')");
+                out.println("plt.gca().set_aspect(1.0)");
                 out.println("plt.show()");
             }
 
