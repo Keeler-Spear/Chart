@@ -6,7 +6,7 @@ public class PyChart {
 
     //ToDo: Throw in some exception checks
     //x and y should be 1xn matrices.
-    //Base code is from DeepSeek converting my Quiz 1 into Java. I then generalized it.
+    //CS 3100 Notes: Base code is from DeepSeek converting my Quiz 1 into Java. I then generalized it.
     public static void contour(Matrix x, Matrix y, Matrix z, Matrix min, String xLabel, String yLabel, String title) {
         try {
             // Create a temporary Python script
@@ -57,7 +57,6 @@ public class PyChart {
     //x and y should be 1xn matrices.
     public static void contourTrack(Matrix x, Matrix y, Matrix z, Matrix xT, Matrix yT, Matrix min, String xLabel, String yLabel, String title) {
         try {
-            // Create a temporary Python script
             File pythonScript = File.createTempFile("contour_plot", ".py");
             pythonScript.deleteOnExit();
 
@@ -69,7 +68,6 @@ public class PyChart {
             String wMin = String.valueOf(min.getValue(2, 1));
 
             try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
-                //Imports
                 out.println("import matplotlib.pyplot as plt");
                 out.println("import numpy as np");
                 //Initializing data
@@ -94,9 +92,8 @@ public class PyChart {
                 out.println("plt.show()");
             }
 
-            // Run the Python script
             ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
-            pb.inheritIO(); // Display Python output
+            pb.inheritIO();
             Process p = pb.start();
             p.waitFor();
         } catch (IOException | InterruptedException e) {
@@ -106,7 +103,6 @@ public class PyChart {
 
     public static void scatter(Matrix x, Matrix y, String xLabel, String yLabel, String title) {
         try {
-            // Create a temporary Python script
             File pythonScript = File.createTempFile("scatter_plot", ".py");
             pythonScript.deleteOnExit();
 
@@ -138,7 +134,6 @@ public class PyChart {
     //Created on my own, using the others for reference
     public static void scatterWFnc(Matrix x, Matrix y, Matrix xAp, Matrix yAp, String xLabel, String yLabel, String title) {
         try {
-            // Create a temporary Python script
             File pythonScript = File.createTempFile("scatter_plot", ".py");
             pythonScript.deleteOnExit();
 
@@ -172,9 +167,8 @@ public class PyChart {
     }
 
     //Created on my own, using the others for reference
-    public static void TwoFnc(Matrix x, Matrix f1, Matrix f2, String xLabel, String yLabel, String title) {
+    public static void twoFnc(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, String xLabel, String yLabel, String title) {
         try {
-            // Create a temporary Python script
             File pythonScript = File.createTempFile("scatter_plot", ".py");
             pythonScript.deleteOnExit();
 
@@ -187,8 +181,44 @@ public class PyChart {
                 out.println("f1 = np.array(" + f1.npString() + ")");
                 out.println("f2 = np.array(" + f2.npString() + ")");
                 //Printing the scatter plot
-                out.println("plt.plot(x, f1, color='green', label='Training Data Error')");
-                out.println("plt.plot(x, f2, color='red', label='Testing Data Error')");
+                out.println("plt.plot(x, f1, color='blue', label='" + fnc1 + "')");
+                out.println("plt.plot(x, f2, color='red', label='" + fnc2 + "')");
+                //Titling chart
+                out.println("plt.xlabel('" + xLabel + "')");
+                out.println("plt.ylabel('" + yLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.legend()");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Created on my own, using the others for reference
+    public static void threeFnc(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, Matrix f3, String fnc3, String xLabel, String yLabel, String title) {
+        try {
+            File pythonScript = File.createTempFile("scatter_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                out.println("x = np.array(" + x.npString() + ")");
+                out.println("f1 = np.array(" + f1.npString() + ")");
+                out.println("f2 = np.array(" + f2.npString() + ")");
+                out.println("f3 = np.array(" + f3.npString() + ")");
+                //Printing the scatter plot
+                out.println("plt.plot(x, f1, color='blue', label='" + fnc1 + "')");
+                out.println("plt.plot(x, f2, color='red', label='" + fnc2 + "')");
+                out.println("plt.plot(x, f3, color='green', label='" + fnc3 + "')");
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
                 out.println("plt.ylabel('" + yLabel + "')");
