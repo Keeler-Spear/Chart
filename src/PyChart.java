@@ -2,6 +2,8 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.function.Function;
+
 public class PyChart {
 
     //ToDo: Throw in some exception checks
@@ -184,6 +186,44 @@ public class PyChart {
                 //Printing the scatter plot
                 out.println("plt.plot(x, f1, color='blue', label='" + fnc1 + "')");
                 out.println("plt.plot(x, f2, color='red', label='" + fnc2 + "')");
+                //Titling chart
+                out.println("plt.xlabel('" + xLabel + "')");
+                out.println("plt.ylabel('" + yLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.legend()");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Same as the above method but it allows the user to pass function objects
+    public static void twoFnc(Matrix x, Function fnc1, String fnc1Name, Function fnc2, String fnc2Name, String xLabel, String yLabel, String title) {
+        try {
+            //Building function data
+            Matrix f1 = LinearAlgebra.applyFunction(x, fnc1);
+            Matrix f2 = LinearAlgebra.applyFunction(x, fnc2);
+
+            File pythonScript = File.createTempFile("scatter_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                out.println("x = np.array(" + x.npString() + ")");
+                out.println("f1 = np.array(" + f1.npString() + ")");
+                out.println("f2 = np.array(" + f2.npString() + ")");
+                //Printing the scatter plot
+                out.println("plt.plot(x, f1, color='blue', label='" + fnc1Name + "')");
+                out.println("plt.plot(x, f2, color='red', label='" + fnc2Name + "')");
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
                 out.println("plt.ylabel('" + yLabel + "')");
