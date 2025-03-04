@@ -170,6 +170,38 @@ public class PyChart {
     }
 
     //Created on my own, using the others for reference
+    public static void Fnc(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
+        try {
+            File pythonScript = File.createTempFile("scatter_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                out.println("x = np.array(" + x.npString() + ")");
+                out.println("f = np.array(" + f.npString() + ")");
+                //Printing the scatter plot
+                out.println("plt.plot(x, f, color='blue', label='" + fnc + "')");
+                //Titling chart
+                out.println("plt.xlabel('" + xLabel + "')");
+                out.println("plt.ylabel('" + yLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.legend()");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    //Created on my own, using the others for reference
     public static void twoFnc(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, String xLabel, String yLabel, String title) {
         try {
             File pythonScript = File.createTempFile("scatter_plot", ".py");
