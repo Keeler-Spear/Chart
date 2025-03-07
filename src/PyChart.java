@@ -170,7 +170,7 @@ public class PyChart {
     }
 
     //Created on my own, using the others for reference
-    public static void Fnc(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
+    public static void fnc(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
         try {
             File pythonScript = File.createTempFile("scatter_plot", ".py");
             pythonScript.deleteOnExit();
