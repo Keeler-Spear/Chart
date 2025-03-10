@@ -103,7 +103,7 @@ public class PyChart {
         }
     }
 
-    public static void scatter(Matrix x, Matrix y, String xLabel, String yLabel, String title) {
+    public static void scatter(Matrix x, Matrix y, String dataName, String xLabel, String yLabel, String title) {
         try {
             File pythonScript = File.createTempFile("scatter_plot", ".py");
             pythonScript.deleteOnExit();
@@ -116,7 +116,7 @@ public class PyChart {
                 out.println("x = np.array(" + x.npString() + ")");
                 out.println("y = np.array(" + y.npString() + ")");
                 //Printing the scatter plot
-                out.println("plt.scatter(x, y, color='blue', s=10, label='Data points')");
+                out.println("plt.scatter(x, y, color='blue', s=10, label='" + dataName + "')");
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
                 out.println("plt.ylabel('" + yLabel + "')");
