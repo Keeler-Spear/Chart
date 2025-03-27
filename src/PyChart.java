@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.function.Function;
 
-//ToDo: Allow for the user to input a line type
 public class PyChart {
 
     final static String[] colors = {
@@ -29,25 +28,27 @@ public class PyChart {
     };
 
     /**
-     * Graphs the provided functions on a plot together.
+     * Graphs the provided data on a plot together in the Cartesian Plane.
      *
-     * @param x The values at which the functions are evaluated at. This matrix will be used to form the x-axis.
+     * @param x The values at which the functions are evaluated at. The largest matrix will be used to form the x-axis.
      * @param fncs The set of function outputs to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
      * @param fncNames The set of names corresponding to the functions provided.
      * @param xLabel The label to be used for the x-axis.
      * @param yLabel The label to be used for the y-axis.
      * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
      * @throws IllegalArgumentException If each function does not have a name.
      * @throws IllegalArgumentException If each function does not have the same number of entries as the input variable x.
      */
-    public static void plotFunctions(Matrix x, Matrix[] fncs, String[] fncNames, String xLabel, String yLabel, String title) {
+    public static void plot(Matrix x[], Matrix[] fncs, String[] fncSymbols, String[] fncNames, String xLabel, String yLabel, String title) {
         if (fncs.length != fncNames.length) {
             throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
         }
 
         for (int i = 0; i < fncs.length; i++) {
-            if (fncs[i].getRows() != x.getRows()) {
-                throw new IllegalArgumentException("Each function must have " + x.getRows() + " entries! The function at index " + i + " has " + fncs[i].getRows() + " entries!");
+            if (fncs[i].getRows() != x[i].getRows()) {
+                throw new IllegalArgumentException("This function must have " + x[i].getRows() + " entries! The function at index " + i + " has " + fncs[i].getRows() + " entries!");
             }
         }
 
@@ -60,13 +61,15 @@ public class PyChart {
                 out.println("import matplotlib.pyplot as plt");
                 out.println("import numpy as np");
                 //Initializing data
-                out.println("x = np.array(" + x.npString() + ")");
+                for (int i = 0; i < x.length; i ++) {
+                    out.println("x" + i + " = np.array(" + x[i].npString() + ")");
+                }
                 for (int i = 0; i < fncs.length; i ++) {
                     out.println("f" + i + " = np.array(" + fncs[i].npString() + ")");
                 }
                 //Printing the scatter plot
                 for (int i = 0; i < fncs.length; i ++) {
-                    out.println("plt.plot(x, f" + i + ", color='" + colors[i] + "', label='" + fncNames[i] + "')");
+                    out.println("plt.plot(x" + i + ", f" + i + ", '" + fncSymbols[i] + "', color='" + colors[i] + "', label='" + fncNames[i] + "')");
                 }
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
@@ -86,29 +89,96 @@ public class PyChart {
     }
 
     /**
-     * Graphs the provided functions on a plot together.
+     * Graphs the provided data on a plot together in the Cartesian Plane.
      *
-     * @param x The values at which the functions are evaluated at. This matrix will be used to form the x-axis.
+     * @param x The values at which the functions are evaluated at. The largest matrix will be used to form the x-axis.
      * @param fncs The set of functions to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
      * @param fncNames The set of names corresponding to the functions provided.
      * @param xLabel The label to be used for the x-axis.
      * @param yLabel The label to be used for the y-axis.
      * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
      * @throws IllegalArgumentException If each function does not have a name.
      */
-    public static void plotFunctions(Matrix x, Function<Double, Double>[] fncs, String[] fncNames, String xLabel, String yLabel, String title) {
+    public static void plot(Matrix x[], Function<Double, Double>[] fncs, String[] fncSymbols, String[] fncNames, String xLabel, String yLabel, String title) {
+        if (fncs.length != fncSymbols.length) {
+            throw new IllegalArgumentException("Each function must have a symbol! " + fncs.length + " != " + fncSymbols.length + "!");
+        }
+
         if (fncs.length != fncNames.length) {
             throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
         }
 
-        try {
-            //Building function data
-            Matrix[] functions = new Matrix[fncs.length];
-            for (int i = 0; i < fncs.length; i ++) {
-                functions[i] = LinearAlgebra.applyFunction(x, fncs[i]);
-            }
+        //Building function data
+        Matrix[] functions = new Matrix[fncs.length];
+        for (int i = 0; i < fncs.length; i ++) {
+            functions[i] = LinearAlgebra.applyFunction(x[i], fncs[i]);
+        }
 
-            File pythonScript = File.createTempFile("function_plot", ".py");
+        plot(x, functions, fncSymbols, fncNames, xLabel, yLabel, title);
+    }
+
+    public static void plot(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Matrix[] fncs = {f};
+        String[] names = {fnc};
+        String[] symbols = {"-"};
+        plot(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plot(Matrix x, Function<Double, Double> fnc, String fncName, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Function<Double, Double>[] fncs = new Function[]{fnc};
+        String[] names = {fncName};
+        String[] symbols = {"-"};
+        plot(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plot(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Matrix[] fncs = {f1, f2};
+        String[] names = {fnc1, fnc2};
+        String[] symbols = {"-", "-"};
+        plot(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plot(Matrix x, Function<Double, Double> fnc1, String fnc1Name, Function<Double, Double> fnc2, String fnc2Name, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Function<Double, Double>[] fncs = new Function[]{fnc1, fnc2};
+        String[] names = {fnc1Name, fnc2Name};
+        String[] symbols = {"-", "-"};
+        plot(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+
+    /**
+     * Graphs the provided data on a semilogy plot together in the Cartesian Plane.
+     *
+     * @param x The values at which the functions are evaluated at. The largest matrix will be used to form the x-axis.
+     * @param fncs The set of function outputs to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
+     * @param fncNames The set of names corresponding to the functions provided.
+     * @param xLabel The label to be used for the x-axis.
+     * @param yLabel The label to be used for the y-axis.
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
+     * @throws IllegalArgumentException If each function does not have a name.
+     * @throws IllegalArgumentException If each function does not have the same number of entries as the input variable x.
+     */
+    public static void plotSemilogy(Matrix x[], Matrix[] fncs, String[] fncSymbols, String[] fncNames, String xLabel, String yLabel, String title) {
+        if (fncs.length != fncNames.length) {
+            throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
+        }
+
+        for (int i = 0; i < fncs.length; i++) {
+            if (fncs[i].getRows() != x[i].getRows()) {
+                throw new IllegalArgumentException("This function must have " + x[i].getRows() + " entries! The function at index " + i + " has " + fncs[i].getRows() + " entries!");
+            }
+        }
+
+        try {
+            File pythonScript = File.createTempFile("functions_plot", ".py");
             pythonScript.deleteOnExit();
 
             try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
@@ -116,13 +186,16 @@ public class PyChart {
                 out.println("import matplotlib.pyplot as plt");
                 out.println("import numpy as np");
                 //Initializing data
-                out.println("x = np.array(" + x.npString() + ")");
+                for (int i = 0; i < x.length; i ++) {
+                    out.println("x" + i + " = np.array(" + x[i].npString() + ")");
+                }
+
                 for (int i = 0; i < fncs.length; i ++) {
-                    out.println("f" + i + " = np.array(" + functions[i].npString() + ")");
+                    out.println("f" + i + " = np.array(" + fncs[i].npString() + ")");
                 }
                 //Printing the scatter plot
                 for (int i = 0; i < fncs.length; i ++) {
-                    out.println("plt.plot(x, f" + i + ", color='" + colors[i] + "', label='" + fncNames[i] + "')");
+                    out.println("plt.semilogy(x" + i + ", f" + i + ", '" + fncSymbols[i] + "', color='" + colors[i] + "', label='" + fncNames[i] + "')");
                 }
                 //Titling chart
                 out.println("plt.xlabel('" + xLabel + "')");
@@ -140,6 +213,316 @@ public class PyChart {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Graphs the provided data on a semilogy plot together in the Cartesian Plane.
+     *
+     * @param x The values at which the functions are evaluated at. This matrix will be used to form the x-axis.
+     * @param fncs The set of functions to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
+     * @param fncNames The set of names corresponding to the functions provided.
+     * @param xLabel The label to be used for the x-axis.
+     * @param yLabel The label to be used for the y-axis.
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
+     * @throws IllegalArgumentException If each function does not have a name.
+     */
+    public static void plotSemilogy(Matrix x[], Function<Double, Double>[] fncs, String[] fncSymbols, String[] fncNames, String xLabel, String yLabel, String title) {
+        if (fncs.length != fncSymbols.length) {
+            throw new IllegalArgumentException("Each function must have a symbol! " + fncs.length + " != " + fncSymbols.length + "!");
+        }
+
+        if (fncs.length != fncNames.length) {
+            throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
+        }
+
+        //Building function data
+        Matrix[] functions = new Matrix[fncs.length];
+        for (int i = 0; i < fncs.length; i ++) {
+            functions[i] = LinearAlgebra.applyFunction(x[i], fncs[i]);
+        }
+
+        plotSemilogy(x, functions, fncSymbols, fncNames, xLabel, yLabel, title);
+    }
+
+    public static void plotSemilogy(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Matrix[] fncs = {f};
+        String[] names = {fnc};
+        String[] symbols = {"-"};
+        plotSemilogy(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plotSemilogy(Matrix x, Function<Double, Double> fnc, String fncName, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Function<Double, Double>[] fncs = new Function[]{fnc};
+        String[] names = {fncName};
+        String[] symbols = {"-"};
+        plotSemilogy(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plotSemilogy(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Matrix[] fncs = {f1, f2};
+        String[] names = {fnc1, fnc2};
+        String[] symbols = {"-", "-"};
+        plotSemilogy(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plotSemilogy(Matrix x, Function<Double, Double> fnc1, String fnc1Name, Function<Double, Double> fnc2, String fnc2Name, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Function<Double, Double>[] fncs = new Function[]{fnc1, fnc2};
+        String[] names = {fnc1Name, fnc2Name};
+        String[] symbols = {"-", "-"};
+        plotSemilogy(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    /**
+     * Graphs the provided data on a loglog plot together in the Cartesian Plane.
+     *
+     * @param x The values at which the functions are evaluated at. The largest matrix will be used to form the x-axis.
+     * @param fncs The set of function outputs to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
+     * @param fncNames The set of names corresponding to the functions provided.
+     * @param xLabel The label to be used for the x-axis.
+     * @param yLabel The label to be used for the y-axis.
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
+     * @throws IllegalArgumentException If each function does not have a name.
+     * @throws IllegalArgumentException If each function does not have the same number of entries as the input variable x.
+     */
+    public static void plotLogLog(Matrix x[], Matrix[] fncs, String[] fncSymbols, String[] fncNames, String xLabel, String yLabel, String title) {
+        if (fncs.length != fncNames.length) {
+            throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
+        }
+
+        for (int i = 0; i < fncs.length; i++) {
+            if (fncs[i].getRows() != x[i].getRows()) {
+                throw new IllegalArgumentException("This function must have " + x[i].getRows() + " entries! The function at index " + i + " has " + fncs[i].getRows() + " entries!");
+            }
+        }
+
+        try {
+            File pythonScript = File.createTempFile("functions_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                for (int i = 0; i < x.length; i ++) {
+                    out.println("x" + i + " = np.array(" + x[i].npString() + ")");
+                }
+
+                for (int i = 0; i < fncs.length; i ++) {
+                    out.println("f" + i + " = np.array(" + fncs[i].npString() + ")");
+                }
+                //Printing the scatter plot
+                for (int i = 0; i < fncs.length; i ++) {
+                    out.println("plt.loglog(x" + i + ", f" + i + ", '" + fncSymbols[i] + "', color='" + colors[i] + "', label='" + fncNames[i] + "')");
+                }
+                //Titling chart
+                out.println("plt.xlabel('" + xLabel + "')");
+                out.println("plt.ylabel('" + yLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.legend()");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Graphs the provided data on a loglog plot together in the Cartesian Plane.
+     *
+     * @param x The values at which the functions are evaluated at. This matrix will be used to form the x-axis.
+     * @param fncs The set of functions to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
+     * @param fncNames The set of names corresponding to the functions provided.
+     * @param xLabel The label to be used for the x-axis.
+     * @param yLabel The label to be used for the y-axis.
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
+     * @throws IllegalArgumentException If each function does not have a name.
+     */
+    public static void plotLogLog(Matrix x[], Function<Double, Double>[] fncs, String[] fncSymbols, String[] fncNames, String xLabel, String yLabel, String title) {
+        if (fncs.length != fncSymbols.length) {
+            throw new IllegalArgumentException("Each function must have a symbol! " + fncs.length + " != " + fncSymbols.length + "!");
+        }
+
+        if (fncs.length != fncNames.length) {
+            throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
+        }
+
+        //Building function data
+        Matrix[] functions = new Matrix[fncs.length];
+        for (int i = 0; i < fncs.length; i ++) {
+            functions[i] = LinearAlgebra.applyFunction(x[i], fncs[i]);
+        }
+
+        plotLogLog(x, functions, fncSymbols, fncNames, xLabel, yLabel, title);
+    }
+
+    public static void plotLogLog(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Matrix[] fncs = {f};
+        String[] names = {fnc};
+        String[] symbols = {"-"};
+        plotLogLog(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plotLogLog(Matrix x, Function<Double, Double> fnc, String fncName, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Function<Double, Double>[] fncs = new Function[]{fnc};
+        String[] names = {fncName};
+        String[] symbols = {"-"};
+        plotLogLog(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plotLogLog(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Matrix[] fncs = {f1, f2};
+        String[] names = {fnc1, fnc2};
+        String[] symbols = {"-", "-"};
+        plotLogLog(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    public static void plotLogLog(Matrix x, Function<Double, Double> fnc1, String fnc1Name, Function<Double, Double> fnc2, String fnc2Name, String xLabel, String yLabel, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Function<Double, Double>[] fncs = new Function[]{fnc1, fnc2};
+        String[] names = {fnc1Name, fnc2Name};
+        String[] symbols = {"-", "-"};
+        plotLogLog(xs, fncs, symbols, names, xLabel, yLabel, title);
+    }
+
+    /**
+     * Graphs the provided data on a polar together.
+     *
+     * @param x The values at which the functions are evaluated at.
+     * @param fncs The set of function outputs to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
+     * @throws IllegalArgumentException If each function does not have the same number of entries as the input variable x.
+     */
+    public static void plotPolar(Matrix x[], Matrix[] fncs, String[] fncSymbols, String title) {
+        for (int i = 0; i < fncs.length; i++) {
+            if (fncs[i].getRows() != x[i].getRows()) {
+                throw new IllegalArgumentException("This function must have " + x[i].getRows() + " entries! The function at index " + i + " has " + fncs[i].getRows() + " entries!");
+            }
+        }
+
+        try {
+            File pythonScript = File.createTempFile("functions_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                //Initializing data
+                for (int i = 0; i < x.length; i ++) {
+                    out.println("x" + i + " = np.array(" + x[i].npString() + ")");
+                }
+
+                for (int i = 0; i < fncs.length; i ++) {
+                    out.println("f" + i + " = np.array(" + fncs[i].npString() + ")");
+                }
+                //Printing the scatter plot
+                for (int i = 0; i < fncs.length; i ++) {
+                    out.println("plt.polar(x" + i + ", f" + i + ", '" + fncSymbols[i] + "', color='" + colors[i] + "')");
+                }
+                //Titling chart
+                out.println("plt.title('" + title + "')");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Graphs the provided data on a polar together.
+     *
+     * @param x The values at which the functions are evaluated at.
+     * @param fncs The set of function outputs to be plotted.
+     * @param fncSymbols The symbols used to represent the function. For continuous plotting, use "-".
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have symbol.
+     * @throws IllegalArgumentException If each function does not have the same number of entries as the input variable x.
+     */
+    public static void plotPolar(Matrix x[], Function<Double, Double>[] fncs, String[] fncSymbols, String title) {
+        if (fncs.length != fncSymbols.length) {
+            throw new IllegalArgumentException("Each function must have a symbol! " + fncs.length + " != " + fncSymbols.length + "!");
+        }
+
+        //Building function data
+        Matrix[] functions = new Matrix[fncs.length];
+        for (int i = 0; i < fncs.length; i ++) {
+            functions[i] = LinearAlgebra.applyFunction(x[i], fncs[i]);
+        }
+
+        plotPolar(x, functions, fncSymbols, title);
+    }
+
+    public static void plotPolar(Matrix x, Matrix f, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Matrix[] fncs = {f};
+        String[] symbols = {"-"};
+        plotPolar(xs, fncs, symbols, title);
+    }
+
+    public static void plotPolar(Matrix x, Function<Double, Double> fnc, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Function<Double, Double>[] fncs = new Function[]{fnc};
+        String[] symbols = {"-"};
+        plotPolar(xs, fncs, symbols, title);
+    }
+
+    public static void plotPolar(Matrix x, Matrix f1, Matrix f2, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Matrix[] fncs = {f1, f2};
+        String[] symbols = {"-", "-"};
+        plotPolar(xs, fncs, symbols, title);
+    }
+
+    public static void plotPolar(Matrix x, Function<Double, Double> fnc1, Function<Double, Double> fnc2, String title) {
+        Matrix[] xs = new Matrix[]{x, x};
+        Function<Double, Double>[] fncs = new Function[]{fnc1, fnc2};
+        String[] symbols = {"-", "-"};
+        plotPolar(xs, fncs, symbols, title);
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     //CS 3100 Notes: Base code is from DeepSeek converting my Quiz 1 into Java. I then generalized it.
     public static void contour(Matrix x, Matrix y, Matrix z, Matrix min, String xLabel, String yLabel, String title) {
@@ -232,94 +615,5 @@ public class PyChart {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
-    }
-
-    public static void scatter(Matrix x, Matrix y, String dataName, String xLabel, String yLabel, String title) {
-        try {
-            File pythonScript = File.createTempFile("scatter_plot", ".py");
-            pythonScript.deleteOnExit();
-
-            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
-                //Imports
-                out.println("import matplotlib.pyplot as plt");
-                out.println("import numpy as np");
-                //Initializing data
-                out.println("x = np.array(" + x.npString() + ")");
-                out.println("y = np.array(" + y.npString() + ")");
-                //Printing the scatter plot
-                out.println("plt.scatter(x, y, color='blue', s=10, label='" + dataName + "')");
-                //Titling chart
-                out.println("plt.xlabel('" + xLabel + "')");
-                out.println("plt.ylabel('" + yLabel + "')");
-                out.println("plt.title('" + title + "')");
-                out.println("plt.gca().set_aspect(1.0)");
-                out.println("plt.show()");
-            }
-
-            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
-            pb.inheritIO();
-            Process p = pb.start();
-            p.waitFor();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void scatterWFnc(Matrix x, Matrix y, Matrix xAp, Matrix yAp, String xLabel, String yLabel, String title) {
-        try {
-            File pythonScript = File.createTempFile("scatter_plot", ".py");
-            pythonScript.deleteOnExit();
-
-            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
-                //Imports
-                out.println("import matplotlib.pyplot as plt");
-                out.println("import numpy as np");
-                //Initializing data
-                out.println("x = np.array(" + x.npString() + ")");
-                out.println("y = np.array(" + y.npString() + ")");
-                out.println("xAp = np.array(" + xAp.npString() + ")");
-                out.println("yAp = np.array(" + yAp.npString() + ")");
-                //Printing the scatter plot
-                out.println("plt.scatter(x, y, color='blue', s=10, label='Data Points')");
-                out.println("plt.plot(xAp, yAp, color='red', label='Best Fit')");
-                //Titling chart
-                out.println("plt.xlabel('" + xLabel + "')");
-                out.println("plt.ylabel('" + yLabel + "')");
-                out.println("plt.title('" + title + "')");
-                out.println("plt.legend()");
-                out.println("plt.show()");
-            }
-
-            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
-            pb.inheritIO();
-            Process p = pb.start();
-            p.waitFor();
-        } catch (IOException | InterruptedException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void plotFunction(Matrix x, Matrix f, String fnc, String xLabel, String yLabel, String title) {
-        Matrix[] fncs = {f};
-        String[] names = {fnc};
-        plotFunctions(x, fncs, names, xLabel, yLabel, title);
-    }
-
-    public static void plotFunction(Matrix x, Function<Double, Double> fnc, String fncName, String xLabel, String yLabel, String title) {
-        Function<Double, Double>[] fncs = new Function[]{fnc};
-        String[] names = {fncName};
-        plotFunctions(x, fncs, names, xLabel, yLabel, title);
-    }
-
-    public static void plotTwoFunctions(Matrix x, Matrix f1, String fnc1, Matrix f2, String fnc2, String xLabel, String yLabel, String title) {
-        Matrix[] fncs = {f1, f2};
-        String[] names = {fnc1, fnc2};
-        plotFunctions(x, fncs, names, xLabel, yLabel, title);
-    }
-
-    public static void plotTwoFunctions(Matrix x, Function<Double, Double> fnc1, String fnc1Name, Function<Double, Double> fnc2, String fnc2Name, String xLabel, String yLabel, String title) {
-        Function<Double, Double>[] fncs = new Function[]{fnc1, fnc2};
-        String[] names = {fnc1Name, fnc2Name};
-        plotFunctions(x, fncs, names, xLabel, yLabel, title);
     }
 }
