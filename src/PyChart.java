@@ -2,6 +2,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.function.BiFunction;
 import java.util.function.Function;
 
 public class PyChart {
@@ -615,5 +616,128 @@ public class PyChart {
         } catch (IOException | InterruptedException e) {
             e.printStackTrace();
         }
+    }
+
+    //3d Plotting
+
+    /**
+     * Graphs the provided data on a plot together in the 3D Cartesian Plane.
+     *
+     * @param x The values at which the functions are evaluated at. The largest matrix will be used to form the x-axis.
+     * @param y The values at which the functions are evaluated at. The largest matrix will be used to form the y-axis.
+     * @param fncs The set of function outputs to be plotted.
+     * @param fncNames The set of names corresponding to the functions provided.
+     * @param xLabel The label to be used for the x-axis.
+     * @param yLabel The label to be used for the y-axis.
+     * @param zLabel The label to be used for the z-axis.
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have a name.
+     * @throws IllegalArgumentException If each function does not have the same number of entries as the input variable x.
+     */
+    public static void plot3D(Matrix x[], Matrix y[], Matrix[] fncs, String[] fncNames, String xLabel, String yLabel, String zLabel, String title) {
+        if (fncs.length != fncNames.length) {
+            throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
+        }
+
+        for (int i = 0; i < fncs.length; i++) {
+            if (fncs[i].getCols() != x[i].getRows()) {
+                throw new IllegalArgumentException("This function must have " + x[i].getRows() + " entries! The function at index " + i + " has " + fncs[i].getCols() + " entries!");
+            }
+            if (fncs[i].getRows() != y[i].getRows()) {
+                throw new IllegalArgumentException("This function must have " + y[i].getRows() + " entries! The function at index " + i + " has " + fncs[i].getRows() + " entries!");
+            }
+        }
+
+        try {
+            File pythonScript = File.createTempFile("functions_plot", ".py");
+            pythonScript.deleteOnExit();
+
+            try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
+                //Imports
+                out.println("import matplotlib.pyplot as plt");
+                out.println("import numpy as np");
+                out.println("fig = plt.figure()");
+                out.println("ax = fig.add_subplot(projection='3d')");
+                //Initializing data
+                for (int i = 0; i < x.length; i ++) {
+                    out.println("x" + i + " = np.array(" + x[i].npString() + ")");
+                }
+                for (int i = 0; i < x.length; i ++) {
+                    out.println("y" + i + " = np.array(" + y[i].npString() + ")");
+                }
+                for (int i = 0; i < fncs.length; i ++) {
+                    out.println("f" + i + " = np.array(" + fncs[i].npString() + ")");
+                }
+                //Printing the scatter plot
+                for (int i = 0; i < fncs.length; i ++) {
+                    out.println("ax.plot_surface(x" + i + ", y" + i + ", f" + i + ", color='" + colors[i] + "', label='" + fncNames[i] + "')");
+                }
+                //Titling chart
+                out.println("ax.set_xlabel('" + xLabel + "')");
+                out.println("ax.set_ylabel('" + yLabel + "')");
+                out.println("ax.set_zlabel('" + zLabel + "')");
+                out.println("plt.title('" + title + "')");
+                out.println("plt.legend()");
+                out.println("plt.show()");
+            }
+
+            ProcessBuilder pb = new ProcessBuilder("python", pythonScript.getAbsolutePath());
+            pb.inheritIO();
+            Process p = pb.start();
+            p.waitFor();
+        } catch (IOException | InterruptedException e) {
+            e.printStackTrace();
+        }
+    }
+
+    /**
+     * Graphs the provided data on a plot together in the 3D Cartesian Plane.
+     *
+     * @param x The values at which the functions are evaluated at. The largest matrix will be used to form the x-axis.
+     * @param y The values at which the functions are evaluated at. The largest matrix will be used to form the y-axis.
+     * @param fncs The set of functions to be plotted.
+     * @param fncNames The set of names corresponding to the functions provided.
+     * @param xLabel The label to be used for the x-axis.
+     * @param yLabel The label to be used for the y-axis.
+     * @param zLabel The label to be used for the z-axis.
+     * @param title The title to be used for the plot
+     * @throws IllegalArgumentException If each function does not have a name.
+     */
+    public static void plot3D(Matrix x[], Matrix y[], BiFunction<Double, Double, Double>[] fncs, String[] fncNames, String xLabel, String yLabel, String zLabel, String title) {
+        if (fncs.length != fncNames.length) {
+            throw new IllegalArgumentException("Each function must have a name! " + fncs.length + " != " + fncNames.length + "!");
+        }
+
+        //Building function data
+        Matrix[] functions = new Matrix[fncs.length];
+        Matrix fncVals;
+        for (int i = 0; i < fncs.length; i ++) {
+            fncVals = new Matrix(y[i].getRows(), x[i].getRows());
+            for (int j = 1; j <= fncVals.getRows(); j++) {
+                for (int k = 1; k <= fncVals.getCols(); k++) {
+                    fncVals.setValue(j, k, fncs[i].apply(x[i].getValue(k, 1), y[i].getValue(j, 1)));
+                }
+            }
+
+            functions[i] = fncVals;
+        }
+
+        plot3D(x, y, functions, fncNames, xLabel, yLabel, zLabel, title);
+    }
+
+    public static void plot3D(Matrix x, Matrix y, Matrix f, String fnc, String xLabel, String yLabel, String zLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Matrix[] ys = new Matrix[]{y};
+        Matrix[] fncs = {f};
+        String[] names = {fnc};
+        plot3D(xs, ys, fncs, names, xLabel, yLabel, zLabel, title);
+    }
+
+    public static void plot3D(Matrix x, Matrix y, BiFunction<Double, Double, Double> fnc, String fncName, String xLabel, String yLabel, String zLabel, String title) {
+        Matrix[] xs = new Matrix[]{x};
+        Matrix[] ys = new Matrix[]{y};
+        BiFunction<Double, Double, Double>[] fncs = new BiFunction[]{fnc};
+        String[] names = {fncName};
+        plot3D(xs, ys, fncs, names, xLabel, yLabel, zLabel, title);
     }
 }
