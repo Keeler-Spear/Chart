@@ -655,9 +655,8 @@ public class PyChart {
             try (PrintWriter out = new PrintWriter(new FileWriter(pythonScript))) {
                 //Imports
                 out.println("import matplotlib.pyplot as plt");
+                out.println("from mpl_toolkits.mplot3d import Axes3D");
                 out.println("import numpy as np");
-                out.println("fig = plt.figure()");
-                out.println("ax = fig.add_subplot(projection='3d')");
                 //Initializing data
                 for (int i = 0; i < x.length; i ++) {
                     out.println("x" + i + " = np.array(" + x[i].npString() + ")");
@@ -668,9 +667,14 @@ public class PyChart {
                 for (int i = 0; i < fncs.length; i ++) {
                     out.println("f" + i + " = np.array(" + fncs[i].npString() + ")");
                 }
+                for (int i = 0; i < fncs.length; i++) {
+                    out.println("X" + i + ", Y" + i + " = np.meshgrid(x" + i + ", y" + i + ")");
+                }
+                out.println("fig = plt.figure()");
+                out.println("ax = fig.add_subplot(projection='3d')");
                 //Printing the scatter plot
                 for (int i = 0; i < fncs.length; i ++) {
-                    out.println("ax.plot_surface(x" + i + ", y" + i + ", f" + i + ", color='" + colors[i] + "', label='" + fncNames[i] + "')");
+                    out.println("surf = ax.plot_surface(X" + i + ", Y" + i + ", f" + i + ", color='" + colors[i] + "', label='" + fncNames[i] + "')");
                 }
                 //Titling chart
                 out.println("ax.set_xlabel('" + xLabel + "')");
@@ -712,14 +716,7 @@ public class PyChart {
         Matrix[] functions = new Matrix[fncs.length];
         Matrix fncVals;
         for (int i = 0; i < fncs.length; i ++) {
-            fncVals = new Matrix(y[i].getRows(), x[i].getRows());
-            for (int j = 1; j <= fncVals.getRows(); j++) {
-                for (int k = 1; k <= fncVals.getCols(); k++) {
-                    fncVals.setValue(j, k, fncs[i].apply(x[i].getValue(k, 1), y[i].getValue(j, 1)));
-                }
-            }
-
-            functions[i] = fncVals;
+            functions[i] = PDE.build2DFunction(x[i], y[i], fncs[i]);
         }
 
         plot3D(x, y, functions, fncNames, xLabel, yLabel, zLabel, title);
